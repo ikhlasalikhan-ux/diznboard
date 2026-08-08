@@ -845,12 +845,19 @@ body.nav-open .sb-item,body.nav-pinned .sb-item{gap:15px;padding:14px 15px}
 .cx-head{display:grid;grid-template-columns:minmax(0,1fr) 124px 70px 126px 24px;gap:7px;padding:4px 6px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .cx-head span:nth-child(2),.cx-head span:nth-child(3),.cx-head span:nth-child(4){text-align:right}
 .cx-cat{margin-bottom:12px}
-.cx-cat-h{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:8px 6px 6px;border-bottom:1px dashed var(--line2);margin-bottom:5px}
+.cx-cat-h{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:8px 6px 6px;border-bottom:1px dashed var(--line2);margin-bottom:5px;cursor:pointer;user-select:none}
 .cx-cat-h b{font-size:13.5px;font-weight:750;margin-right:auto}
 .cx-cat-ic{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:8px;
   background:var(--hover);color:var(--v)}
 .cx-cat-ic svg{width:15px;height:15px}
 .cx-cat-sum{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.cx-cat-pct{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--v);background:var(--hover);border-radius:7px;padding:2px 7px;flex:none}
+.cx-cat-chev{width:15px;height:15px;flex:none;color:var(--mut);transition:transform .16s var(--ease)}
+.cx-cat:not(.closed) .cx-cat-chev{transform:rotate(90deg)}
+.cx-cat.closed .cx-cat-h{margin-bottom:0;border-bottom-color:transparent}
+.cx-cat-body{overflow:hidden}
+.cx-cat.closed .cx-cat-body{display:none}
+.cx-exp-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:2px}
 .cx-row{display:grid;grid-template-columns:minmax(0,1fr) 124px 70px 126px 24px;gap:7px;align-items:center;padding:2px 6px}
 .cx-hint{font-style:normal;font-size:10px;font-weight:600;color:var(--mut2);margin-left:6px}
 .cx-in{border:1px solid var(--line);background:var(--inp);color:var(--ink);border-radius:9px;padding:7px 10px;font-size:13px;outline:none;transition:.14s;font-family:inherit;width:100%;min-width:0}
@@ -933,20 +940,6 @@ body.is-guest .cx-in,body.is-guest .cx-title{opacity:.85;cursor:default}
 .cx-tk-x{text-align:center;color:var(--mut2);font-size:11px}
 .cx-tk-s{text-align:right;font-size:11.5px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
 .cx-qty{font-variant-numeric:tabular-nums;text-align:right}
-.cx-pie-wrap{display:flex;justify-content:center;padding:4px 0 12px}
-.cx-pie{width:154px;height:154px;overflow:visible}
-.cx-sl{transition:opacity .15s}
-.cx-pie:hover .cx-sl{opacity:.45}
-.cx-pie .cx-sl:hover{opacity:1}
-.cx-pie-c1{text-anchor:middle;font-size:12px;font-weight:650;fill:var(--ink);font-family:inherit;letter-spacing:-.01em}
-.cx-pie-c2{text-anchor:middle;font-size:6.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;fill:var(--mut);font-family:inherit}
-.cx-lgs{display:flex;flex-direction:column;gap:7px}
-.cx-lg{display:flex;align-items:center;gap:9px;font-size:12px}
-.cx-lg-d{width:9px;height:9px;border-radius:3px;flex:none}
-.cx-lg-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2);font-weight:600}
-.cx-lg-s{font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
-.cx-lg-p{width:38px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;color:var(--mut);flex:none}
-.cx-pie-empty{font-size:12.5px;color:var(--mut);padding:14px 2px;text-align:center}
 .cx-block h3{margin-bottom:10px}
 .cx-block.cx-green{border-top:3px solid #93C47D}
 .cx-block.cx-bar{border-top:3px solid #F4CCCC}
@@ -2818,57 +2811,8 @@ function calcNums(){
     sponL:sponL,sponO:sponO,tkL:tkL,tkO:tkO,tkQL:tkQL,tkQO:tkQO,revL:revL,revO:revO,profitL:profitL,profitO:profitO};
 }
 function catSum(c){var s=0;c.items.forEach(function(it){s+=(+it.p||0)*(+it.q||0);});return s;}
-// ---- структура расходов: пончиковая диаграмма по категориям ----
-function moneyShort(v){var a=Math.abs(v);
-  if(a>=1e6)return (v/1e6).toFixed(a>=1e7?1:2).replace('.',',')+' млн';
-  if(a>=1e3)return Math.round(v/1e3)+' тыс';
-  return ''+Math.round(v);}
-function catPieData(){
-  var arr=[];CALC.cats.forEach(function(c,i){var s=catSum(c);
-    if(s>0)arr.push({name:c.name,sum:s,color:COLORS[i%COLORS.length]});});
-  arr.sort(function(a,b){return b.sum-a.sum;});
-  var total=0;arr.forEach(function(x){total+=x.sum;});
-  // проценты по методу наибольшего остатка, чтобы в сумме было ровно 100
-  if(total>0){
-    var acc=0;
-    arr.forEach(function(x){var e=x.sum/total*100;x.pct=Math.floor(e);x._r=e-x.pct;acc+=x.pct;});
-    var rest=100-acc;
-    arr.map(function(x,i){return {i:i,r:x._r};})
-       .sort(function(a,b){return b.r-a.r;})
-       .slice(0,Math.max(0,rest))
-       .forEach(function(o){arr[o.i].pct++;});
-    arr.forEach(function(x){delete x._r;});
-  }
-  return {items:arr,total:total};
-}
-function catPieHtml(){
-  var d=catPieData();
-  if(!d.total)return '<div class="cx-pie-empty">Проставьте суммы в статьях — здесь появится структура расходов</div>';
-  var R=56,r=36,cx=64,cy=64,ang=-Math.PI/2,gap=d.items.length>1?0.03:0,f=function(n){return (+n).toFixed(2);};
-  var slices=d.items.map(function(x){
-    var frac=x.sum/d.total,sw=frac*Math.PI*2;
-    if(frac>=0.9999)return '<circle cx="'+cx+'" cy="'+cy+'" r="'+((R+r)/2)+'" fill="none" stroke="'+x.color+'" stroke-width="'+(R-r)+'"/>';
-    var a0=ang+gap/2,a1=ang+sw-gap/2;ang+=sw;if(a1<a0)a1=a0;
-    var lg=(a1-a0)>Math.PI?1:0;
-    return '<path class="cx-sl" fill="'+x.color+'" d="M '+f(cx+R*Math.cos(a0))+' '+f(cy+R*Math.sin(a0))+
-      ' A '+R+' '+R+' 0 '+lg+' 1 '+f(cx+R*Math.cos(a1))+' '+f(cy+R*Math.sin(a1))+
-      ' L '+f(cx+r*Math.cos(a1))+' '+f(cy+r*Math.sin(a1))+
-      ' A '+r+' '+r+' 0 '+lg+' 0 '+f(cx+r*Math.cos(a0))+' '+f(cy+r*Math.sin(a0))+' Z">'+
-      '<title>'+esc(x.name)+' — '+money(x.sum)+' ('+x.pct+'%)</title></path>';
-  }).join('');
-  var legend=d.items.map(function(x){
-    return '<div class="cx-lg"><span class="cx-lg-d" style="background:'+x.color+'"></span>'+
-      '<span class="cx-lg-n" title="'+esc(x.name)+'">'+esc(x.name)+'</span>'+
-      '<span class="cx-lg-s">'+money(x.sum)+'</span>'+
-      '<span class="cx-lg-p">'+x.pct+'%</span></div>';
-  }).join('');
-  var ctr=moneyShort(d.total);
-  return '<div class="cx-pie-wrap"><svg class="cx-pie" viewBox="0 0 128 128">'+slices+
-    '<text x="64" y="62" class="cx-pie-c1"'+(ctr.length>8?' style="font-size:10px"':'')+'>'+ctr+'</text>'+
-    '<text x="64" y="73" class="cx-pie-c2">всего ₸</text></svg></div>'+
-    '<div class="cx-lgs">'+legend+'</div>';
-}
-
+// какие категории расходов свёрнуты — состояние живёт вне CALC, не считается пользовательскими данными
+var CX_COLLAPSED={};
 // иконка категории расходов — подбирается по названию, данные не меняются
 var CX_ICONS=[
   [/мест|площад|локац|аренд|venue/i,'<path d="M12 21s7-5.4 7-11a7 7 0 0 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>'],
@@ -2905,6 +2849,8 @@ function cxKpi(tone,icon,label,valId,valTxt,valColor,sub,subId){
 }
 function renderCalc(el){
   var num=calcNums();
+  var totalAll=0;CALC.cats.forEach(function(c){totalAll+=catSum(c);});
+  var allClosed=CALC.cats.length>0&&CALC.cats.every(function(c,ci){return !!CX_COLLAPSED[ci];});
   var exp=CALC.cats.map(function(c,ci){
     var items=c.items.map(function(it,ii){
       return '<div class="cx-row">'+
@@ -2914,8 +2860,14 @@ function renderCalc(el){
         '<span class="cx-sum" data-cs="'+ci+'-'+ii+'">'+money((+it.p||0)*(+it.q||0))+'</span>'+
         '<button class="cx-del" data-delitem="'+ci+'-'+ii+'" title="удалить">&times;</button></div>';
     }).join('');
-    return '<div class="cx-cat"><div class="cx-cat-h"><span class="cx-cat-ic">'+catIcon(c.name)+'</span><b>'+(ci+1)+'. '+esc(c.name)+'</b><span class="cx-cat-sum" data-catsum="'+ci+'">'+money(catSum(c))+'</span></div>'+
-      items+'<button class="cx-add" data-additem="'+ci+'">+ статья</button></div>';
+    var sum=catSum(c),pct=totalAll>0?Math.round(sum/totalAll*100):0;
+    return '<div class="cx-cat'+(CX_COLLAPSED[ci]?' closed':'')+'">'+
+      '<div class="cx-cat-h" data-cattoggle="'+ci+'">'+
+        '<svg class="cx-cat-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>'+
+        '<span class="cx-cat-ic">'+catIcon(c.name)+'</span><b>'+(ci+1)+'. '+esc(c.name)+'</b>'+
+        '<span class="cx-cat-pct" data-catpct="'+ci+'">'+pct+'%</span>'+
+        '<span class="cx-cat-sum" data-catsum="'+ci+'">'+money(sum)+'</span></div>'+
+      '<div class="cx-cat-body">'+items+'<button class="cx-add" data-additem="'+ci+'">+ статья</button></div></div>';
   }).join('');
 
   var spon=CALC.sponsors.map(function(s,i){return '<div class="cx-sp2">'+
@@ -2961,7 +2913,8 @@ function renderCalc(el){
       cxKpi('t-diff',CXI.diff,'Разница сценариев','cxDelta',money(num.profitO-num.profitL),'','оптимизм − скудность','')+
     '</div>'+
     '<div class="cx-grid">'+
-      '<div class="panel cx-exp"><h3>Расходы по статьям</h3><div class="psub">цена × кол-во → сумма, итог считается автоматически</div>'+
+      '<div class="panel cx-exp"><div class="cx-exp-h"><div><h3>Расходы по статьям</h3><div class="psub">цена × кол-во → сумма, итог считается автоматически</div></div>'+
+        '<button class="btn ghost sm" id="cxToggleAll">'+(allClosed?'Развернуть всё':'Свернуть всё')+'</button></div>'+
         '<div class="cx-head"><span>Наименование</span><span>цена</span><span>кол-во</span><span>сумма</span><span></span></div>'+
         exp+
         '<button class="cx-addcat" id="cxAddCat">+ категория расходов</button>'+
@@ -2985,9 +2938,6 @@ function renderCalc(el){
           '<div class="cx-sc-head" style="margin-top:8px"><span></span><span>скудный</span><span>оптимист.</span></div>'+
           '<div class="cx-sc-row"><span class="cx-lbl">Продано, шт</span><b class="cx-qty" id="cxTkQL">'+num.tkQL+'</b><b class="cx-qty" id="cxTkQO">'+num.tkQO+'</b></div>'+
           '<div class="cx-sc-tot"><b>Сумма от продаж</b><b id="cxTickL">'+money(num.tkL)+'</b><b id="cxTickO">'+money(num.tkO)+'</b></div></div>'+
-        '<div class="panel cx-block cx-pieblock"><h3>Структура расходов</h3>'+
-          '<div class="psub">доли и суммы по категориям статей</div>'+
-          '<div id="cxPie">'+catPieHtml()+'</div></div>'+
       '</div>'+
     '</div>'+
     // 2 сценария выручки / прибыли
@@ -3022,6 +2972,17 @@ function renderCalc(el){
   g('cxAddTm').onclick=function(){CALC.team.push({n:'Участник',spent:0,took:0});saveCalc();renderCalc(el);};
   el.querySelectorAll('[data-additem]').forEach(function(b){b.onclick=function(){CALC.cats[+b.dataset.additem].items.push({n:'Статья',p:0,q:1});saveCalc();renderCalc(el);};});
   el.querySelectorAll('[data-delitem]').forEach(function(b){b.onclick=function(){var p=b.dataset.delitem.split('-');CALC.cats[+p[0]].items.splice(+p[1],1);saveCalc();renderCalc(el);};});
+  // сворачивание категорий расходов
+  el.querySelectorAll('[data-cattoggle]').forEach(function(h){h.onclick=function(){
+    var ci=+h.dataset.cattoggle,catEl=h.closest('.cx-cat'),willClose=!catEl.classList.contains('closed');
+    catEl.classList.toggle('closed',willClose);CX_COLLAPSED[ci]=willClose;
+    var tg=g('cxToggleAll');if(tg)tg.textContent=CALC.cats.every(function(c,i){return !!CX_COLLAPSED[i];})?'Развернуть всё':'Свернуть всё';
+  };});
+  var tgAll=g('cxToggleAll');if(tgAll)tgAll.onclick=function(){
+    var willClose=!CALC.cats.every(function(c,ci){return !!CX_COLLAPSED[ci];});
+    CALC.cats.forEach(function(c,ci){CX_COLLAPSED[ci]=willClose;});
+    renderCalc(el);
+  };
   el.querySelectorAll('[data-delsp]').forEach(function(b){b.onclick=function(){CALC.sponsors.splice(+b.dataset.delsp,1);saveCalc();renderCalc(el);};});
   el.querySelectorAll('[data-delbc]').forEach(function(b){b.onclick=function(){CALC.barCost.splice(+b.dataset.delbc,1);saveCalc();renderCalc(el);};});
   // живой пересчёт без ре-рендера
@@ -3055,8 +3016,11 @@ function lockCalc(el){
 function recalcCalc(el){
   var num=calcNums();
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  var totalAll=0;CALC.cats.forEach(function(c){totalAll+=catSum(c);});
   CALC.cats.forEach(function(c,ci){c.items.forEach(function(it,ii){var s=document.querySelector('[data-cs="'+ci+'-'+ii+'"]');if(s)s.textContent=money((+it.p||0)*(+it.q||0));});
-    var cs=document.querySelector('[data-catsum="'+ci+'"]');if(cs)cs.textContent=money(catSum(c));});
+    var sum=catSum(c);
+    var cs=document.querySelector('[data-catsum="'+ci+'"]');if(cs)cs.textContent=money(sum);
+    var cp=document.querySelector('[data-catpct="'+ci+'"]');if(cp)cp.textContent=(totalAll>0?Math.round(sum/totalAll*100):0)+'%';});
   CALC.team.forEach(function(t,i){var r=document.querySelector('[data-rem="'+i+'"]');if(r)r.textContent=money((+t.spent||0)-(+t.took||0));});
   set('cxCostsOps',money(num.costsOps));set('cxBarCost',money(num.barCost));
   set('cxBarShare',money(num.barShare));set('cxBarNet2',money(num.barNet));
@@ -3067,7 +3031,6 @@ function recalcCalc(el){
     var a=document.querySelector('[data-tks="l'+i+'"]');if(a)a.textContent=money((+t.lq||0)*(+t.lp||0));
     var b=document.querySelector('[data-tks="o'+i+'"]');if(b)b.textContent=money((+t.oq||0)*(+t.op||0));
   });
-  var pie=document.getElementById('cxPie');if(pie)pie.innerHTML=catPieHtml();
   set('cxCosts',money(num.totalCosts));
   set('cxProfitL',money(num.profitL));set('cxProfitO',money(num.profitO));
   set('cxKsL','выручка '+money(num.revL));set('cxKsO','выручка '+money(num.revO));
