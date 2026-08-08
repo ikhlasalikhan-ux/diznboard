@@ -915,9 +915,16 @@ body.is-guest .cx-in,body.is-guest .cx-title{opacity:.85;cursor:default}
   .cxk::before{display:none}
   .cxk+.cxk::after{content:"";position:absolute;left:16px;right:16px;top:0;height:1px;background:var(--line)}
 }
-.cx-tk{border:1px solid var(--line2);border-radius:11px;padding:9px 10px 7px;margin-bottom:8px;background:var(--inp)}
+.cx-tk{border:1px solid var(--line2);border-left:3px solid var(--tkc,var(--line2));border-radius:11px;padding:9px 10px 7px;margin-bottom:8px;background:var(--inp);box-shadow:0 0 0 1px var(--tkc-glow2,transparent)}
+.cx-tk:nth-of-type(3n+1){--tkc:#ff5fae;--tkc-glow:rgba(255,95,174,.4);--tkc-glow2:rgba(255,95,174,.16)}
+.cx-tk:nth-of-type(3n+2){--tkc:#a78bfa;--tkc-glow:rgba(167,139,250,.4);--tkc-glow2:rgba(167,139,250,.16)}
+.cx-tk:nth-of-type(3n+3){--tkc:#22d3ee;--tkc-glow:rgba(34,211,238,.4);--tkc-glow2:rgba(34,211,238,.16)}
 .cx-tk-h{display:flex;align-items:center;gap:7px;margin-bottom:6px}
 .cx-tk-h .cx-in{flex:1;min-width:0}
+.cx-tk-name{border:none!important;background:transparent!important;padding:4px 2px!important;font-size:14.5px;font-weight:800;color:var(--ink);box-shadow:none!important;cursor:default}
+.cx-tk-name:focus{background:var(--hover)!important;border-radius:8px;box-shadow:none!important}
+.cx-tk .cx-num{box-shadow:0 0 0 2px var(--tkc-glow2,transparent),0 0 12px -5px var(--tkc-glow,transparent);border-color:var(--tkc-glow,var(--line))}
+.cx-tk .cx-num:focus{border-color:var(--tkc,var(--v));box-shadow:0 0 0 3px var(--tkc-glow,transparent),0 0 16px -3px var(--tkc-glow,transparent)}
 .cx-tk-r{display:grid;grid-template-columns:60px minmax(0,1fr) 10px minmax(0,1fr) 104px;align-items:center;gap:5px;margin-top:5px}
 .cx-tk-l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .cx-tk-hd{margin-top:2px;margin-bottom:1px}
@@ -2919,7 +2926,7 @@ function renderCalc(el){
   var tkRows=((CALC.tickets&&CALC.tickets.rows)||[]).map(function(t,i){
     var sL=(+t.lq||0)*(+t.lp||0),sO=(+t.oq||0)*(+t.op||0);
     return '<div class="cx-tk">'+
-      '<div class="cx-tk-h"><input class="cx-in cx-name" data-tk="'+i+'" data-f="n" value="'+esc(t.n)+'">'+
+      '<div class="cx-tk-h"><input class="cx-in cx-name cx-tk-name" data-tk="'+i+'" data-f="n" value="'+esc(t.n)+'">'+
         '<button class="cx-del" data-deltk="'+i+'" title="удалить">&times;</button></div>'+
       '<div class="cx-tk-r cx-tk-hd"><span></span><span>кол-во, шт</span><span></span><span>цена, тг</span><span>сумма</span></div>'+
       '<div class="cx-tk-r"><span class="cx-tk-l">скудный</span>'+
