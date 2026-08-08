@@ -191,7 +191,7 @@ body.nav-animating .road,body.nav-animating .cal-grid,body.nav-animating .fin-ca
 
 /* project header on board */
 .bmain{display:flex;flex-direction:column;min-height:0}
-.bhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;flex:none}
+.bhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;flex:none;position:relative;z-index:20}
 .bhead .bh-mark{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:none;color:#fff}
 .bhead .bh-mark svg{width:22px;height:22px}
 .bhead .bh-tt b{font-size:18px;font-weight:700;letter-spacing:-.01em;display:block;line-height:1.15}
@@ -200,11 +200,43 @@ body.nav-animating .road,body.nav-animating .cal-grid,body.nav-animating .fin-ca
 .bh-prog{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--mut);font-weight:600}
 .bh-prog .pbar{width:120px;height:7px;border-radius:6px;background:var(--hover);overflow:hidden}
 .bh-prog .pbar i{display:block;height:100%;border-radius:6px;background:var(--ok);transition:width .5s var(--ease)}
+/* тихая иконка редактирования проекта — рядом с названием, а не отдельной кнопкой в шапке */
+.bh-edit{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;
+  color:var(--mut);opacity:.45;cursor:pointer;border-radius:8px;vertical-align:middle;margin-left:5px;transition:.15s}
+.bh-edit:hover{opacity:1;color:var(--v);background:var(--hover)}
+.bh-edit svg{width:14px;height:14px;display:block}
+/* переключатель проекта — раскрываемый фильтр справа в шапке доски */
+.proj-pick{position:relative}
+.proj-pick-btn{display:flex;align-items:center;gap:9px;padding:8px 11px 8px 10px;border:1px solid var(--line);border-radius:12px;
+  background:var(--card);color:var(--ink);font-family:inherit;font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s;max-width:210px}
+.proj-pick-btn:hover{border-color:var(--v)}
+.proj-pick-btn .pdot{width:9px;height:9px;border-radius:50%;flex:none}
+.proj-pick-btn .ppn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.proj-pick-btn svg{width:14px;height:14px;flex:none;color:var(--mut);transition:transform .2s}
+.proj-pick.open .proj-pick-btn svg{transform:rotate(180deg)}
+.proj-pick.open .proj-pick-btn{border-color:var(--v)}
+.proj-pick-menu{position:absolute;top:calc(100% + 9px);right:0;width:280px;max-height:360px;overflow-y:auto;
+  background:var(--panel-solid);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);
+  padding:8px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s;z-index:80}
+.proj-pick.open .proj-pick-menu{opacity:1;visibility:visible;transform:none}
+.proj-pick-item{display:flex;align-items:center;gap:10px;padding:9px;border-radius:11px;cursor:pointer;transition:.12s}
+.proj-pick-item:hover{background:var(--hover)}
+.proj-pick-item.on{background:rgba(109,94,246,.1);box-shadow:inset 2px 0 0 var(--v)}
+.proj-pick-item .pdot{width:10px;height:10px;border-radius:4px;flex:none}
+.proj-pick-item .pn{min-width:0;flex:1}
+.proj-pick-item .pn b{font-size:13.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.proj-pick-item .pn small{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.proj-pick-item .pcount{font-size:11px;font-weight:750;background:var(--hover);border-radius:7px;padding:2px 8px;color:var(--ink2);flex:none;font-variant-numeric:tabular-nums}
+.proj-pick-add{display:flex;align-items:center;gap:8px;padding:9px;margin-top:4px;border-top:1px solid var(--line2);
+  color:var(--mut);font-size:12.5px;font-weight:650;cursor:pointer;border-radius:11px;transition:.12s}
+.proj-pick-add:hover{background:var(--hover);color:var(--v)}
+.proj-pick-add svg{width:15px;height:15px}
+@media(max-width:640px){.proj-pick-menu{width:min(300px,88vw)}}
 
 /* kanban */
-.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;overflow-x:auto;padding-bottom:4px;flex:1 1 auto;min-height:0}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;padding-bottom:4px;flex:1 1 auto;min-height:0}
 .kcol{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 11px 4px;backdrop-filter:var(--glass);
-  display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh);min-width:220px;transition:background .15s,box-shadow .15s}
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh);min-width:0;transition:background .15s,box-shadow .15s}
 .kcol.drop{background:rgba(109,94,246,.08);box-shadow:inset 0 0 0 2px rgba(109,94,246,.45)}
 .kcol-h{display:flex;align-items:center;gap:10px;padding:2px 4px 12px;margin-bottom:2px;border-bottom:1px solid var(--line2);flex:none}
 .kdot{width:9px;height:9px;border-radius:50%;flex:none}
@@ -436,6 +468,7 @@ html[data-theme="light"] .kcol,html[data-theme="light"] .road,html[data-theme="l
 .board-page,.cal-page{display:flex;flex-direction:column;height:100%;min-height:0}
 .board-page>.h-row,.cal-page>.h-row,.cal-page>.cal-top,.cal-page>.road,.cal-page>.dayx{flex:none}
 .board-page>.board{flex:1;min-height:0;height:auto}
+.board-page>.bmain{flex:1;min-height:0;height:auto}
 .cal-page>.cal-grid{flex:1;min-height:0;display:flex;flex-direction:column}
 .cal-page .cal-dow{flex:none}
 .cal-page .cal-cells{flex:1;min-height:0;overflow-y:auto;grid-auto-rows:minmax(72px,1fr)}
@@ -449,7 +482,8 @@ html[data-theme="light"] .kcol,html[data-theme="light"] .road,html[data-theme="l
 .spring{flex:1}
 /* аватары исполнителей на карточке */
 .avstack{display:flex;margin-left:auto;flex:none}
-.avstack .mini{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;border:2px solid var(--panel-solid);margin-left:-7px}
+.avstack .mini{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;border:2px solid var(--panel-solid);margin-left:-7px;background-size:cover;background-position:center;flex:none}
+.avstack .mini.ph{color:transparent}
 .avstack .mini:first-child{margin-left:0}
 .avstack .mini.more{background:var(--hover);color:var(--mut)}
 
@@ -1940,7 +1974,7 @@ themeBtn.addEventListener('click',function(){applyTheme(document.documentElement
 (function(){var t;try{t=localStorage.getItem('pb_theme');}catch(e){}applyTheme(t||'dark');})();
 /* user menu */
 document.getElementById('userWrap').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('open');});
-document.addEventListener('click',function(){document.getElementById('userWrap').classList.remove('open');});
+document.addEventListener('click',function(){document.getElementById('userWrap').classList.remove('open');var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');});
 /* резервная копия / перенос данных */
 document.getElementById('exportBtn').addEventListener('click',function(){
   var blob=new Blob([JSON.stringify(_store(),null,2)],{type:'application/json'});
@@ -1965,30 +1999,33 @@ document.getElementById('logoutBtn').addEventListener('click',function(){
 /* ============================= BOARD VIEW ============================= */
 function renderBoard(el){
   if(SEL&&!projById(SEL))SEL=STATE.projects.length?STATE.projects[0].id:null;
-  el.innerHTML=''+
-    '<div class="view-in board-page">'+
-    '<div class="board"><div class="brail" id="brail"></div><div class="bmain" id="bmain"></div></div>'+
-    '</div>';
-  drawRail();drawMain();
+  el.innerHTML='<div class="view-in board-page"><div class="bmain" id="bmain"></div></div>';
+  drawMain();
 }
-function drawRail(){
-  var el=document.getElementById('brail');if(!el)return;
+/* список проектов — содержимое раскрываемого фильтра в шапке доски */
+function projPickHtml(){
   var items=STATE.projects.map(function(p){
     var ts=projTasks(p.id),open=ts.filter(function(t){return t.status!=='done';}).length;
-    return '<div class="pitem'+(p.id===SEL?' on':'')+'" data-p="'+p.id+'">'+
+    return '<div class="proj-pick-item'+(p.id===SEL?' on':'')+'" data-p="'+p.id+'">'+
       '<span class="pdot" style="background:'+esc(p.color||'#6d5ef6')+'"></span>'+
       '<span class="pn"><b>'+esc(p.name)+'</b><small>'+(p.client?esc(p.client):'без клиента')+'</small></span>'+
-      '<button class="pedit" data-edit="'+p.id+'" title="Редактировать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
       '<span class="pcount" title="открытых задач">'+open+'</span></div>';
-  }).join('');
-  el.innerHTML='<div class="brail-h"><b>Проекты</b><span class="pcount">'+STATE.projects.length+'</span></div>'+
-    '<div class="brail-list">'+(items||'<div class="brail-empty">Пока нет проектов.<br>Создайте первый →</div>')+'</div>';
-  el.querySelectorAll('.pitem').forEach(function(it){
-    it.addEventListener('click',function(e){
-      if(e.target.closest('[data-edit]')){openProjModal(it.dataset.p);return;}
-      SEL=it.dataset.p;drawRail();drawMain();
-    });
+  }).join('')||'<div class="brail-empty">Пока нет проектов</div>';
+  return items+'<div class="proj-pick-add" id="projPickAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Новый проект</div>';
+}
+function bindProjPickMenu(){
+  var menu=document.getElementById('projPickMenu');if(!menu)return;
+  menu.querySelectorAll('[data-p]').forEach(function(it){
+    it.onclick=function(){SEL=it.dataset.p;var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');drawMain();};
   });
+  var addBtn=document.getElementById('projPickAdd');
+  if(addBtn)addBtn.onclick=function(){var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');openProjModal(null);};
+}
+/* имя сохранено ради старых мест вызова (после изменения задач обновляли список слева) —
+   теперь просто освежает содержимое уже отрисованного выпадающего фильтра, если он есть */
+function drawRail(){
+  var el=document.getElementById('projPickMenu');if(!el)return;
+  el.innerHTML=projPickHtml();bindProjPickMenu();
 }
 function bhMark(color){return '<span class="bh-mark" style="background:'+esc(color||'#6d5ef6')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>';}
 function drawMain(){
@@ -2001,14 +2038,21 @@ function drawMain(){
   var prog=progressOf(p.id),ts=projTasks(p.id);
   el.innerHTML=''+
     '<div class="bhead">'+bhMark(p.color)+
-      '<div class="bh-tt"><b>'+esc(p.name)+'</b><small>'+(p.client?esc(p.client)+' · ':'')+ts.length+' задач'+(p.description?' · '+esc(p.description).slice(0,60):'')+'</small></div>'+
+      '<div class="bh-tt"><b>'+esc(p.name)+'<button class="bh-edit" id="bhEdit" title="Редактировать проект"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></b>'+
+      '<small>'+(p.client?esc(p.client)+' · ':'')+ts.length+' задач'+(p.description?' · '+esc(p.description).slice(0,60):'')+'</small></div>'+
       '<div class="bh-act">'+
         '<span class="stpill '+esc(p.status)+'">'+esc(STATUS_RU[p.status]||p.status)+'</span>'+
         '<div class="bh-prog">'+prog+'%<div class="pbar"><i style="width:'+prog+'%"></i></div></div>'+
-        '<button class="btn ghost sm" onclick="openProjModal(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Изменить</button>'+
+        '<div class="proj-pick" id="projPick">'+
+          '<button class="proj-pick-btn" id="projPickBtn" title="Выбрать проект"><span class="pdot" style="background:'+esc(p.color||'#6d5ef6')+'"></span><span class="ppn">'+esc(p.name)+'</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'+
+          '<div class="proj-pick-menu" id="projPickMenu">'+projPickHtml()+'</div>'+
+        '</div>'+
       '</div></div>'+
     '<div class="kanban" id="kanban"></div>';
   drawKanban(p.id);
+  document.getElementById('bhEdit').onclick=function(){openProjModal(p.id);};
+  document.getElementById('projPickBtn').onclick=function(e){e.stopPropagation();document.getElementById('projPick').classList.toggle('open');};
+  bindProjPickMenu();
 }
 function drawKanban(pid){
   var kb=document.getElementById('kanban');if(!kb)return;
@@ -2029,6 +2073,11 @@ function drawKanban(pid){
   bindDrag(kb,pid);
 }
 function taskAssignees(t){return (t.assignees&&t.assignees.length)?t.assignees:(t.assignee?[t.assignee]:[]);}
+function miniAvatar(n){
+  var meta=TEAM_META[n];
+  if(meta)return '<span class="mini ph" style="background-image:url(\''+meta.photo+'\')" title="'+esc(n)+'"></span>';
+  return '<span class="mini" style="background:'+avColor(n)+'" title="'+esc(n)+'">'+initials(n)+'</span>';
+}
 function taskCard(t){
   var sub=t.subtasks||[],done=sub.filter(function(s){return s.done;}).length;
   var cat=catById(t.category);
@@ -2038,7 +2087,7 @@ function taskCard(t){
   if(sub.length)meta.push('<span class="tchip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'+done+'/'+sub.length+'</span>');
   if(t.due)meta.push('<span class="tchip'+(isOver(t.due)&&t.status!=='done'?' over':'')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>'+fmtDate(t.due)+'</span>');
   var who=taskAssignees(t);
-  var avs=who.length?'<div class="avstack">'+who.slice(0,3).map(function(n){return '<span class="mini" style="background:'+avColor(n)+'" title="'+esc(n)+'">'+initials(n)+'</span>';}).join('')+(who.length>3?'<span class="mini more">+'+(who.length-3)+'</span>':'')+'</div>':'';
+  var avs=who.length?'<div class="avstack">'+who.slice(0,3).map(miniAvatar).join('')+(who.length>3?'<span class="mini more">+'+(who.length-3)+'</span>':'')+'</div>':'';
   return '<div class="tcard p-'+t.priority+'" draggable="true" data-t="'+t.id+'">'+head+
     '<div class="tt">'+esc(t.title)+'</div><div class="tm">'+meta.join('')+'<span class="spring"></span>'+avs+'</div></div>';
 }
