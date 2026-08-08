@@ -232,6 +232,42 @@ body.nav-animating .road,body.nav-animating .cal-grid,body.nav-animating .fin-ca
 .proj-pick-add:hover{background:var(--hover);color:var(--v)}
 .proj-pick-add svg{width:15px;height:15px}
 @media(max-width:640px){.proj-pick-menu{width:min(300px,88vw)}}
+/* остальные фильтры доски (исполнитель / категория / срок) — компактные, с мелкой подписью сверху */
+.filter-bar{display:contents}
+.fpick{position:relative}
+.fpick-btn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 28px 6px 11px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;cursor:pointer;transition:.15s;
+  position:relative;min-width:92px}
+.fpick-btn:hover{border-color:var(--v)}
+.fpick.open .fpick-btn{border-color:var(--v)}
+.fpick-btn .fl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mut)}
+.fpick-btn .fv{font-size:12.5px;font-weight:650;color:var(--ink);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fpick-btn .fv.active{color:var(--v)}
+.fpick-btn svg{position:absolute;right:9px;top:50%;margin-top:-7px;width:14px;height:14px;color:var(--mut);transition:transform .2s}
+.fpick.open .fpick-btn svg{transform:rotate(180deg)}
+.fpick-menu{position:absolute;top:calc(100% + 9px);right:0;width:240px;max-height:320px;overflow-y:auto;
+  background:var(--panel-solid);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);
+  padding:8px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s;z-index:80}
+.fpick.open .fpick-menu{opacity:1;visibility:visible;transform:none}
+.fpick-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:11px;cursor:pointer;transition:.12s;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.fpick-item:hover{background:var(--hover)}
+.fpick-item .fchk{width:17px;height:17px;border-radius:6px;border:1.6px solid var(--mut2);display:grid;place-items:center;flex:none;transition:.12s}
+.fpick-item.on .fchk{background:var(--v);border-color:var(--v)}
+.fpick-item .fchk svg{width:11px;height:11px;color:#fff;opacity:0}
+.fpick-item.on .fchk svg{opacity:1}
+.fpick-item .av{width:22px;height:22px;border-radius:50%;flex:none;background-size:cover;background-position:center;display:grid;place-items:center;font-size:8.5px;font-weight:800;color:#fff}
+.fpick-item .cdot{width:9px;height:9px;border-radius:50%;flex:none}
+.fpick-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 9px 2px;margin-top:4px;border-top:1px solid var(--line2)}
+.fpick-clear{font-size:11.5px;font-weight:650;color:var(--mut);cursor:pointer;background:transparent;border:none;font-family:inherit;padding:4px 7px;border-radius:8px;transition:.12s}
+.fpick-clear:hover{color:var(--v);background:var(--hover)}
+.fpick-count{font-size:10.5px;color:var(--mut2)}
+.fpick-preset{padding:8px 9px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink2);transition:.12s}
+.fpick-preset:hover{background:var(--hover)}
+.fpick-preset.on{background:rgba(109,94,246,.14);color:var(--v);font-weight:700}
+.fpick-range{display:flex;gap:7px;padding:8px 2px 2px;margin-top:4px;border-top:1px solid var(--line2)}
+.fpick-range input{flex:1;min-width:0;padding:7px 8px;font-size:11.5px}
+@media(max-width:640px){.fpick-menu{width:min(260px,88vw)}}
+
 
 /* kanban */
 .kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;padding-bottom:4px;flex:1 1 auto;min-height:0}
@@ -1974,7 +2010,7 @@ themeBtn.addEventListener('click',function(){applyTheme(document.documentElement
 (function(){var t;try{t=localStorage.getItem('pb_theme');}catch(e){}applyTheme(t||'dark');})();
 /* user menu */
 document.getElementById('userWrap').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('open');});
-document.addEventListener('click',function(){document.getElementById('userWrap').classList.remove('open');var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');});
+document.addEventListener('click',function(){document.getElementById('userWrap').classList.remove('open');var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');document.querySelectorAll('.fpick.open').forEach(function(x){x.classList.remove('open');});});
 /* резервная копия / перенос данных */
 document.getElementById('exportBtn').addEventListener('click',function(){
   var blob=new Blob([JSON.stringify(_store(),null,2)],{type:'application/json'});
@@ -2028,6 +2064,140 @@ function drawRail(){
   el.innerHTML=projPickHtml();bindProjPickMenu();
 }
 function bhMark(color){return '<span class="bh-mark" style="background:'+esc(color||'#6d5ef6')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>';}
+/* ============================= ФИЛЬТРЫ ДОСКИ (исполнитель / категория / срок) ============================= */
+var FILTER={assignees:[],categories:[],due:{preset:'all',from:'',to:''}};
+function isoWeekRange(ds){
+  var d=new Date(ds+'T00:00:00');
+  var day=(d.getDay()+6)%7;
+  var mon=new Date(d);mon.setDate(d.getDate()-day);
+  var sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  var f=function(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
+  return {start:f(mon),end:f(sun)};
+}
+function taskPassesFilter(t){
+  if(FILTER.assignees.length){
+    var who=taskAssignees(t);
+    if(!FILTER.assignees.some(function(n){return who.indexOf(n)>=0;}))return false;
+  }
+  if(FILTER.categories.length&&FILTER.categories.indexOf(t.category)<0)return false;
+  var due=FILTER.due||{preset:'all'};
+  if(due.preset&&due.preset!=='all'){
+    var d=(t.due||'').slice(0,10);
+    if(due.preset==='overdue'){if(!d||d>=todayStr()||t.status==='done')return false;}
+    else if(due.preset==='today'){if(d!==todayStr())return false;}
+    else if(due.preset==='week'){var w=isoWeekRange(todayStr());if(!d||d<w.start||d>w.end)return false;}
+    else if(due.preset==='none'){if(d)return false;}
+    else if(due.preset==='custom'){
+      if(due.from&&(!d||d<due.from))return false;
+      if(due.to&&(!d||d>due.to))return false;
+    }
+  }
+  return true;
+}
+function isFilterActive(kind){
+  if(kind==='assignee')return FILTER.assignees.length>0;
+  if(kind==='category')return FILTER.categories.length>0;
+  if(kind==='due')return FILTER.due.preset!=='all';
+  return false;
+}
+function filterSummary(kind){
+  if(kind==='assignee'){
+    if(!FILTER.assignees.length)return 'Все';
+    return FILTER.assignees.length===1?FILTER.assignees[0]:FILTER.assignees[0]+' +'+(FILTER.assignees.length-1);
+  }
+  if(kind==='category'){
+    if(!FILTER.categories.length)return 'Все';
+    var names=FILTER.categories.map(function(k){var c=catById(k);return c?c.name:k;});
+    return names.length===1?names[0]:names[0]+' +'+(names.length-1);
+  }
+  if(kind==='due'){
+    var map={all:'Все',overdue:'Просрочено',today:'Сегодня',week:'На неделе',none:'Без срока',custom:'Диапазон'};
+    return map[FILTER.due.preset]||'Все';
+  }
+}
+function assigneeFilterHtml(){
+  var names=peopleNames();
+  var rows=names.map(function(n){
+    var on=FILTER.assignees.indexOf(n)>=0,meta=TEAM_META[n];
+    var av=meta?'<span class="av" style="background-image:url(\''+meta.photo+'\')"></span>':'<span class="av" style="background:'+avColor(n)+'">'+initials(n)+'</span>';
+    return '<div class="fpick-item'+(on?' on':'')+'" data-v="'+esc(n)+'">'+
+      '<span class="fchk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'+
+      av+'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(n)+'</span></div>';
+  }).join('')||'<div class="brail-empty">Пока нет исполнителей</div>';
+  return rows+(FILTER.assignees.length?'<div class="fpick-foot"><span class="fpick-count">выбрано: '+FILTER.assignees.length+'</span><button class="fpick-clear" data-clear="assignee">Сбросить</button></div>':'');
+}
+function categoryFilterHtml(){
+  var rows=CATS.map(function(c){
+    var on=FILTER.categories.indexOf(c.k)>=0;
+    return '<div class="fpick-item'+(on?' on':'')+'" data-v="'+c.k+'">'+
+      '<span class="fchk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'+
+      '<span class="cdot" style="background:'+c.color+'"></span><span style="flex:1">'+esc(c.name)+'</span></div>';
+  }).join('');
+  return rows+(FILTER.categories.length?'<div class="fpick-foot"><span class="fpick-count">выбрано: '+FILTER.categories.length+'</span><button class="fpick-clear" data-clear="category">Сбросить</button></div>':'');
+}
+function dueFilterHtml(){
+  var presets=[['all','Все'],['overdue','Просрочено'],['today','Сегодня'],['week','На этой неделе'],['none','Без срока']];
+  var rows=presets.map(function(p){return '<div class="fpick-preset'+(FILTER.due.preset===p[0]?' on':'')+'" data-due="'+p[0]+'">'+p[1]+'</div>';}).join('');
+  return rows+'<div class="fpick-range"><input class="inp" type="date" id="dueFrom" value="'+esc(FILTER.due.from||'')+'"><input class="inp" type="date" id="dueTo" value="'+esc(FILTER.due.to||'')+'"></div>'+
+    (FILTER.due.preset!=='all'?'<div class="fpick-foot"><span></span><button class="fpick-clear" data-clear="due">Сбросить</button></div>':'');
+}
+function fpick(kind,label,menuHtml){
+  var active=isFilterActive(kind);
+  return '<div class="fpick" id="f_'+kind+'">'+
+    '<button class="fpick-btn" id="f_'+kind+'_btn" type="button"><span class="fl">'+label+'</span><span class="fv'+(active?' active':'')+'">'+filterSummary(kind)+'</span>'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'+
+    '<div class="fpick-menu" id="f_'+kind+'_menu">'+menuHtml+'</div></div>';
+}
+function filterBarHtml(){
+  return fpick('assignee','Исполнитель',assigneeFilterHtml())+fpick('category','Категория',categoryFilterHtml())+fpick('due','Срок',dueFilterHtml());
+}
+function bindFilterBar(){['assignee','category','due'].forEach(bindFilterPick);}
+function bindFilterPick(kind){
+  var el=document.getElementById('f_'+kind);if(!el)return;
+  var btn=document.getElementById('f_'+kind+'_btn'),menu=document.getElementById('f_'+kind+'_menu');
+  menu.onclick=function(e){e.stopPropagation();};
+  btn.onclick=function(e){
+    e.stopPropagation();
+    var willOpen=!el.classList.contains('open');
+    document.querySelectorAll('.fpick.open').forEach(function(x){x.classList.remove('open');});
+    var pp=document.getElementById('projPick');if(pp)pp.classList.remove('open');
+    if(willOpen)el.classList.add('open');
+  };
+  function onChange(){
+    var openEl=document.querySelector('.fpick.open'),openId=openEl?openEl.id:null;
+    var fb=document.getElementById('filterBar');if(!fb)return;
+    fb.innerHTML=filterBarHtml();bindFilterBar();
+    if(openId){var again=document.getElementById(openId);if(again)again.classList.add('open');}
+    if(SEL)drawKanban(SEL);
+  }
+  menu.querySelectorAll('[data-v]').forEach(function(it){
+    it.onclick=function(e){e.stopPropagation();
+      var v=it.dataset.v,arr=kind==='assignee'?FILTER.assignees:FILTER.categories,i=arr.indexOf(v);
+      if(i>=0)arr.splice(i,1);else arr.push(v);
+      onChange();
+    };
+  });
+  if(kind==='due'){
+    menu.querySelectorAll('[data-due]').forEach(function(it){
+      it.onclick=function(e){e.stopPropagation();FILTER.due={preset:it.dataset.due,from:'',to:''};onChange();};
+    });
+    var df=menu.querySelector('#dueFrom'),dt=menu.querySelector('#dueTo');
+    var applyRange=function(){
+      FILTER.due={preset:'custom',from:df.value,to:dt.value};
+      if(!df.value&&!dt.value)FILTER.due.preset='all';
+      onChange();
+    };
+    if(df)df.onchange=applyRange;
+    if(dt)dt.onchange=applyRange;
+  }
+  var clearBtn=menu.querySelector('[data-clear]');
+  if(clearBtn)clearBtn.onclick=function(e){e.stopPropagation();
+    if(kind==='assignee')FILTER.assignees=[];
+    if(kind==='category')FILTER.categories=[];
+    if(kind==='due')FILTER.due={preset:'all',from:'',to:''};
+    onChange();
+  };
+}
 function drawMain(){
   var el=document.getElementById('bmain');if(!el)return;
   var p=projById(SEL);
@@ -2043,6 +2213,7 @@ function drawMain(){
       '<div class="bh-act">'+
         '<span class="stpill '+esc(p.status)+'">'+esc(STATUS_RU[p.status]||p.status)+'</span>'+
         '<div class="bh-prog">'+prog+'%<div class="pbar"><i style="width:'+prog+'%"></i></div></div>'+
+        '<div class="filter-bar" id="filterBar">'+filterBarHtml()+'</div>'+
         '<div class="proj-pick" id="projPick">'+
           '<button class="proj-pick-btn" id="projPickBtn" title="Выбрать проект"><span class="pdot" style="background:'+esc(p.color||'#6d5ef6')+'"></span><span class="ppn">'+esc(p.name)+'</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'+
           '<div class="proj-pick-menu" id="projPickMenu">'+projPickHtml()+'</div>'+
@@ -2053,11 +2224,12 @@ function drawMain(){
   document.getElementById('bhEdit').onclick=function(){openProjModal(p.id);};
   document.getElementById('projPickBtn').onclick=function(e){e.stopPropagation();document.getElementById('projPick').classList.toggle('open');};
   bindProjPickMenu();
+  bindFilterBar();
 }
 function drawKanban(pid){
   var kb=document.getElementById('kanban');if(!kb)return;
   kb.innerHTML=KCOLS.map(function(c){
-    var ts=projTasks(pid).filter(function(t){return t.status===c.k;})
+    var ts=projTasks(pid).filter(function(t){return t.status===c.k;}).filter(taskPassesFilter)
       .sort(function(a,b){return (a.order||0)-(b.order||0);});
     var cards=ts.map(taskCard).join('')||'<div class="kcol-empty">пусто</div>';
     var kc=kcolColor(c);
