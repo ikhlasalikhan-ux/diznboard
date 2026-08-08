@@ -518,6 +518,7 @@ html[data-theme="light"] .kcol,html[data-theme="light"] .road,html[data-theme="l
   .cal-body-row>.road{flex:0 0 232px;width:232px;margin-bottom:0;min-height:0;display:flex;flex-direction:column}
   .cal-body-row>.road .road-track{display:flex;flex-direction:column;gap:8px;overflow-x:hidden;overflow-y:auto;padding:4px 4px 4px 0;margin:0;flex:1;min-height:0}
   .cal-body-row>.road .wk{flex:none}
+  .cal-body-row>.road .road-lg{flex-wrap:wrap;gap:5px 10px;font-size:10.5px}
   .cal-body-row>.cal-right{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .cal-right>.cal-top{flex:none}
 }
@@ -2721,20 +2722,20 @@ var FIN_XLSX_HIST={"sheets":[{"name":"1 - AAYNA","cols":{"A":10.0,"B":33.6,"C":1
 var CALC_DEFAULT={
   name:'DIZNGO - FEST',
   cats:[
-    {name:'Место проведения мероприятия',items:[{n:'Аренда площадки',p:3000000,q:1},{n:'Оборудование (свет+звук+сцена)',p:100000,q:1},{n:'Сцена / декор',p:50000,q:1}]},
-    {name:'Транспортные расходы и проживание',items:[{n:'Авиабилеты артистов',p:600000,q:1},{n:'Проживание',p:30000,q:1},{n:'Суточные (еда+такси)',p:30000,q:1}]},
-    {name:'Гонорары приглашённых специалистов',items:[{n:'Гонорар хедлайнера',p:1500000,q:1},{n:'Локалы',p:100000,q:1},{n:'Виджей',p:20000,q:1}]},
-    {name:'Медиа оснащение',items:[{n:'Фотосъёмка',p:50000,q:1},{n:'Видеограф',p:60000,q:1},{n:'Съёмка сета',p:50000,q:1}]},
-    {name:'Рекламная кампания',items:[{n:'Дизайн',p:50000,q:1},{n:'Полиграфия',p:50000,q:1},{n:'Таргет',p:50000,q:1}]},
-    {name:'Обеспечение мероприятия',items:[{n:'Фейс-контроль',p:25000,q:1},{n:'Бармены',p:75000,q:1},{n:'Охрана',p:30000,q:1},{n:'Технички / гардероб',p:20000,q:1}]}
+    {name:'Место проведения мероприятия',items:[{n:'Аренда площадки',p:0,q:0},{n:'Оборудование (свет+звук+сцена)',p:1000000,q:1},{n:'Сцена / декор',p:500000,q:1}]},
+    {name:'Транспортные расходы и проживание',items:[{n:'Авиабилеты артистов',p:600000,q:1},{n:'Проживание',p:0,q:1},{n:'Суточные (еда+такси)',p:50000,q:1}]},
+    {name:'Гонорары приглашённых специалистов',items:[{n:'Гонорар JARREAU VANDAL',p:1350000,q:1},{n:'Гонорар Rusha',p:400000,q:1},{n:'Гонорар Local DJs',p:250000,q:1},{n:'Гонорар VJ',p:40000,q:1}]},
+    {name:'Медиа оснащение',items:[{n:'Фотосъёмка',p:80000,q:1},{n:'Видеограф',p:200000,q:1},{n:'Съёмка сета',p:100000,q:1}]},
+    {name:'Рекламная кампания',items:[{n:'Дизайн',p:150000,q:1},{n:'Полиграфия',p:70000,q:1},{n:'Таргет',p:300000,q:1}]},
+    {name:'Обеспечение мероприятия',items:[{n:'Фейс-контроль',p:30000,q:1},{n:'Бармены',p:0,q:1},{n:'Охрана',p:100000,q:1},{n:'Технички / гардероб',p:0,q:1}]}
   ],
-  sponsors:[{n:'Jägermeister',s:450000,s2:500000},{n:'Miller',s:500000,s2:600000},{n:'Red Bull',s:150000,s2:200000},{n:'Freedom',s:3000000,s2:4000000},{n:'MaxiChai',s:300000,s2:500000}],
-  barCost:[{n:'Закуп бара',s:0},{n:'Лёд и фрукты',s:0},{n:'Доп. алкоголь',s:0}],
-  barRev:0, barPct:15, barNoRev:false,
-  tickets:{rows:[{n:'Пресейл (Sxodim)',lq:200,lp:6000,oq:350,op:6000},
-                 {n:'Секонд-вейв (Sxodim)',lq:300,lp:8000,oq:450,op:8000},
-                 {n:'У двери',lq:300,lp:12000,oq:500,op:12000}]},
-  team:[{n:'Алихан',spent:0,took:0},{n:'Жамбик',spent:0,took:0}]
+  sponsors:[{n:'Jägermeister',s:450000,s2:450000},{n:'Miller',s:500000,s2:500000},{n:'Red Bull',s:150000,s2:150000},{n:'IQOS',s:500000,s2:1000000},{n:'OpenRate',s:1000000,s2:1000000}],
+  barCost:[],
+  barRev:6000000, barPct:15, barNoRev:false,
+  tickets:{rows:[{n:'Пресейл (Sxodim)',lq:100,lp:6000,oq:100,op:6000},
+                 {n:'Секонд-вейв (Sxodim)',lq:100,lp:8000,oq:350,op:8000},
+                 {n:'У двери',lq:100,lp:12000,oq:300,op:12000}]},
+  team:[{n:'Алихан',spent:0,took:0},{n:'Жамбик',spent:0,took:0},{n:'Раха',spent:0,took:0},{n:'Мерей',spent:0,took:0},{n:'Жандос',spent:0,took:0}]
 };
 function loadCalc(){
   if(CLOUD.on){
