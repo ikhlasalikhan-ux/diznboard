@@ -2627,24 +2627,57 @@ function fmtInt(v){return (v||0).toLocaleString('ru-RU');}
 function money(v){return (v<0?'−':'')+fmtInt(Math.abs(Math.round(v)))+' ₸';}
 function finRev(f){return f.revenue.tickets+f.revenue.bar+f.revenue.sponsors;}
 function finCost(f){return f.costsOps+f.costsBar;}
+var FIN_ICONS={
+  archive:'<path d="M4 7.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5"/><rect x="3" y="3.5" width="18" height="4" rx="1.3"/><path d="M10 12h4"/>',
+  revenue:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 6h6v6"/>',
+  trophy:'<path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M6 4H4.5A1.5 1.5 0 0 0 3 5.5V6a3 3 0 0 0 3 3"/><path d="M18 4h1.5A1.5 1.5 0 0 1 21 5.5V6a3 3 0 0 1-3 3"/><path d="M12 12v3.5"/><path d="M9 20h6"/><path d="M9.5 16h5l.5 4h-6z"/>',
+  debt:'<path d="M4 4.5h13l3 3.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/><path d="M7 9h8M7 13h8M7 17h5"/>'
+};
+// снимок текущей калькуляции в формате архивного феста (скудный сценарий) — только для показа в Финансах
+function calcAsFest(){
+  var num=calcNums();
+  var expenses=CALC.cats.map(function(c){return {cat:c.name,sum:catSum(c),
+    items:c.items.map(function(it){return [it.n,(+it.p||0)*(+it.q||0)];})};});
+  var ticketRows=((CALC.tickets&&CALC.tickets.rows)||[]).map(function(t){return [t.n,(+t.lq||0)*(+t.lp||0)];});
+  var sponsors=(CALC.sponsors||[]).map(function(s){return [s.n,+s.s||0];});
+  var barItems=(CALC.barCost||[]).map(function(b){return [b.n,+b.s||0];});
+  return {
+    name:CALC.name||'DIZNGO - FEST',sub:'план по калькуляции · скудный сценарий',chrono:'ещё не проведён',color:'#a78bfa',
+    revenue:{tickets:num.tkL,bar:num.barShare,sponsors:num.sponL},
+    ticketRows:ticketRows,
+    costsOps:num.costsOps,costsBar:num.barCost,profit:num.profitL,
+    sponsors:sponsors,
+    barEcon:{rev:num.barRev,cost:num.barCost,net:num.barNet,items:barItems},
+    expenses:expenses,
+    settle:[],settleNote:'',
+    note:''
+  };
+}
 
 function renderFinance(el){
   var F=FIN.fests,ord=FIN.order;
   var totRev=0,totCost=0,totProfit=0;
   ord.forEach(function(k){totRev+=finRev(F[k]);totCost+=finCost(F[k]);totProfit+=F[k].profit;});
-  var maxV=Math.max.apply(null,ord.map(function(k){return Math.max(finRev(F[k]),finCost(F[k]));}));
+  var pw=function(n,forms){n=Math.abs(n)%100;var n1=n%10;if(n>10&&n<20)return forms[2];if(n1===1)return forms[0];if(n1>1&&n1<5)return forms[1];return forms[2];};
+  var posN=ord.filter(function(k){return F[k].profit>=0;}).length,negN=ord.length-posN;
+  var netSub=posN+' '+pw(posN,['плюс','плюса','плюсов'])+' · '+negN+' '+pw(negN,['минус','минуса','минусов']);
 
-  // KPI
-  var kpis='<div class="kpis" style="grid-template-columns:repeat(4,1fr)">'+
-    [['Фестов в архиве','3','AAYNA · ALEQS · VIHOD'],
-     ['Суммарная выручка',money(totRev),'билеты + бар + спонсоры'],
-     ['Суммарные расходы',money(totCost),'включая закуп бара'],
-     ['Чистый итог',money(totProfit),'2 плюса · 1 минус']]
-    .map(function(x,i){return '<div class="kpi"><div class="kl">'+x[0]+'</div><div class="kv"'+(i===3?' style="color:'+(totProfit>=0?'var(--ok)':'var(--bad)')+'"':'')+'>'+x[1]+'</div><div class="ks">'+x[2]+'</div></div>';}).join('')+'</div>';
+  // архив + текущий план по калькуляции — в одном формате показа
+  var F2={};ord.forEach(function(k){F2[k]=F[k];});F2.__calc=calcAsFest();
+  var ord2=ord.concat(['__calc']);
+  var maxV=Math.max.apply(null,ord2.map(function(k){return Math.max(finRev(F2[k]),finCost(F2[k]));}));
 
-  // сравнение фестов
-  var cmp='<div class="panel" style="margin-bottom:16px"><h3>Фесты в сравнении</h3><div class="psub">выручка · расходы · итог — в тенге</div>'+
-    ord.map(function(k){var f=F[k],rev=finRev(f),cost=finCost(f);
+  // KPI — большие светящиеся иконки, как в Калькуляции
+  var kpis='<div class="panel cx-kbar">'+
+    cxKpi('t-diff',FIN_ICONS.archive,'Фестов в архиве','finArch',''+ord.length,'',ord.map(function(k){return F[k].name;}).join(' · '),'')+
+    cxKpi('t-lean',FIN_ICONS.revenue,'Суммарная выручка','finRevKpi',money(totRev),'','билеты + бар + спонсоры','')+
+    cxKpi('t-cost',CXI.cost,'Суммарные расходы','finCostKpi',money(totCost),'','включая закуп бара','')+
+    cxKpi('t-opt',FIN_ICONS.trophy,'Чистый итог','finNetKpi',money(totProfit),(totProfit>=0?'var(--ok)':'var(--bad)'),netSub,'')+
+    '</div>';
+
+  // сравнение фестов (архив + план по калькуляции) — колонка уже, справа выводы
+  var cmp='<div class="panel"><h3>Фесты в сравнении</h3><div class="psub">выручка · расходы · итог — в тенге</div>'+
+    ord2.map(function(k){var f=F2[k],rev=finRev(f),cost=finCost(f);
       return '<div class="cmp-row"><div class="cmp-name"><span class="pdot" style="background:'+f.color+'"></span><b>'+f.name+'</b></div>'+
         '<div class="cmp-bars">'+
         '<div class="cmp-line"><span class="cmp-l">выручка</span><div class="cmp-t"><i style="width:'+(rev/maxV*100)+'%;background:'+f.color+'"></i></div><span class="cmp-v">'+money(rev)+'</span></div>'+
@@ -2652,9 +2685,25 @@ function renderFinance(el){
         '</div><div class="cmp-pf '+(f.profit>=0?'up':'dn')+'">'+(f.profit>=0?'+':'')+money(f.profit)+'</div></div>';
     }).join('')+'</div>';
 
-  // карточки фестов
-  var cards='<div class="fin-grid">'+ord.map(function(k){
-    var f=F[k],rev=finRev(f);
+  // выводы из архива — теперь справа от сравнения
+  var ins='<div class="panel"><h3>Выводы из архива</h3><div class="psub">что учесть для DIZNGO-FEST</div><div class="ai-list">'+
+    [['#0a9396','<b>Бар — главный двигатель прибыли.</b> На AAYNA бар дал 1 738 704 ₸ чистыми — больше, чем билеты (1 655 420 ₸). Маржа бара 76–95%.'],
+     ['#f87171','<b>ALEQS NOTAL ушёл в минус −401 264 ₸:</b> оборудование 640 000 ₸ + перелёты 287 125 ₸ при слабой предпродаже (597 812 ₸).'],
+     ['#ff5fae','<b>VIHOD — рекорд: +1 726 665 ₸.</b> Бесплатная площадка Monkey и билеты на 2 281 000 ₸ сделали кассу.'],
+     ['#fbbf24','<b>Спонсоры стабильны:</b> Jägermeister + Miller + Red Bull давали до 950 000 ₸ за фест (на ALEQS — только 200 000 ₸).'],
+     ['#a78bfa','<b>Ориентир для DIZNGO-FEST:</b> предпродажа от 1 млн ₸ и бар со своим закупом — иначе экономика не сходится.']]
+    .map(function(x){return '<div class="ai-ins"><span class="di" style="background:'+x[0]+'"></span><div class="tx">'+x[1]+'</div></div>';}).join('')+'</div></div>';
+
+  var cmpIns='<div class="fin-bottom">'+cmp+ins+'</div>';
+
+  // архив долгов — теперь модалка по кнопке, а не постоянный блок
+  var debtHtml='<h3>Сводный долг команды</h3><div class="msub">«ДИЗ ДОЛЖЕН» — переходящие остатки</div>'+
+    FIN.ledger.rows.map(function(r){return '<div class="ditem ledg"><span>'+esc(r[0])+'</span><em style="color:'+(r[1]>=0?'var(--ok)':'var(--bad)')+'">'+(r[1]>=0?'+':'')+money(r[1])+'</em></div>';}).join('')+
+    '<div class="dnote">'+esc(FIN.ledger.note)+'</div><div class="mfoot"><button class="btn ghost" onclick="closeModal()">Закрыть</button></div>';
+
+  // карточки фестов (архив + план по калькуляции)
+  var cards='<div class="fin-grid">'+ord2.map(function(k){
+    var f=F2[k],rev=finRev(f);
     var segs=[['Билеты',f.revenue.tickets,f.color],['Бар',f.revenue.bar,'#fbbf24'],['Спонсоры',f.revenue.sponsors,'#94a3b8']];
     var stack='<div class="rev-stack">'+segs.map(function(s){return s[1]?'<i style="width:'+(s[1]/rev*100)+'%;background:'+s[2]+'" title="'+s[0]+'"></i>':'';}).join('')+'</div>'+
       '<div class="rev-leg">'+segs.map(function(s){return '<span><i style="background:'+s[2]+'"></i>'+s[0]+' <b>'+money(s[1])+'</b></span>';}).join('')+'</div>';
@@ -2672,8 +2721,8 @@ function renderFinance(el){
     var tickB='<div class="dsec-t">Билеты</div>'+f.ticketRows.map(function(t){return '<div class="ditem"><span>'+esc(t[0])+'</span><em>'+money(t[1])+'</em></div>';}).join('')+
       '<div class="ditem dsum"><span>Итого билеты</span><em>'+money(f.revenue.tickets)+'</em></div>';
     var spB='<div class="dsec-t">Спонсоры</div>'+f.sponsors.map(function(s){return '<div class="ditem"><span>'+esc(s[0])+'</span><em>'+money(s[1])+'</em></div>';}).join('');
-    var setB='<div class="dsec-t">Внутренние расчёты</div>'+f.settle.map(function(s){return '<div class="ditem"><span>'+esc(s[0])+'</span><em'+(s[1]<0?' style="color:var(--bad)"':'')+'>'+money(s[1])+'</em></div>';}).join('')+
-      (f.settleNote?'<div class="dnote">'+esc(f.settleNote)+'</div>':'');
+    var setB=(f.settle&&f.settle.length)?('<div class="dsec-t">Внутренние расчёты</div>'+f.settle.map(function(s){return '<div class="ditem"><span>'+esc(s[0])+'</span><em'+(s[1]<0?' style="color:var(--bad)"':'')+'>'+money(s[1])+'</em></div>';}).join('')+
+      (f.settleNote?'<div class="dnote">'+esc(f.settleNote)+'</div>':'')):'';
     return '<div class="fin-card" style="--fc:'+f.color+'">'+
       '<div class="fc-head"><div><div class="fc-name">'+f.name+'</div><div class="fc-sub">'+esc(f.sub)+' · '+f.chrono+'</div></div>'+
         '<span class="fc-badge '+(f.profit>=0?'up':'dn')+'">'+(f.profit>=0?'+':'')+money(f.profit)+'</span></div>'+
@@ -2690,22 +2739,12 @@ function renderFinance(el){
     FIN.price.map(function(cat){return '<div class="pr-cat"><div class="pr-h">'+esc(cat[0])+'</div>'+
       cat[1].map(function(it){return '<div class="pr-i"><span>'+esc(it[0])+'</span><i></i><b>'+fmtInt(it[1])+' ₸</b></div>';}).join('')+'</div>';}).join('')+'</div></div>';
 
-  // инсайты + сводный долг
-  var ins='<div class="fin-bottom"><div class="panel"><h3>Выводы из архива</h3><div class="psub">что учесть для DIZNGO-FEST</div><div class="ai-list">'+
-    [['#0a9396','<b>Бар — главный двигатель прибыли.</b> На AAYNA бар дал 1 738 704 ₸ чистыми — больше, чем билеты (1 655 420 ₸). Маржа бара 76–95%.'],
-     ['#f87171','<b>ALEQS NOTAL ушёл в минус −401 264 ₸:</b> оборудование 640 000 ₸ + перелёты 287 125 ₸ при слабой предпродаже (597 812 ₸).'],
-     ['#ff5fae','<b>VIHOD — рекорд: +1 726 665 ₸.</b> Бесплатная площадка Monkey и билеты на 2 281 000 ₸ сделали кассу.'],
-     ['#fbbf24','<b>Спонсоры стабильны:</b> Jägermeister + Miller + Red Bull давали до 950 000 ₸ за фест (на ALEQS — только 200 000 ₸).'],
-     ['#22d3ee','<b>Ориентир для DIZNGO-FEST:</b> предпродажа от 1 млн ₸ и бар со своим закупом — иначе экономика не сходится.']]
-    .map(function(x){return '<div class="ai-ins"><span class="di" style="background:'+x[0]+'"></span><div class="tx">'+x[1]+'</div></div>';}).join('')+'</div></div>'+
-    '<div class="panel"><h3>Сводный долг команды</h3><div class="psub">«ДИЗ ДОЛЖЕН» — переходящие остатки</div>'+
-    FIN.ledger.rows.map(function(r){return '<div class="ditem ledg"><span>'+esc(r[0])+'</span><em style="color:'+(r[1]>=0?'var(--ok)':'var(--bad)')+'">'+(r[1]>=0?'+':'')+money(r[1])+'</em></div>';}).join('')+
-    '<div class="dnote">'+esc(FIN.ledger.note)+'</div></div></div>';
-
   el.innerHTML='<div class="view-in">'+
-    '<div class="h-row" style="justify-content:flex-end">'+
-    '<span class="fin-arch">АРХИВ · 3 прошлых феста + прайс бара</span></div>'+kpis+cmp+cards+price+ins+'</div>';
-  // раскрытие синхронно у всех трёх карточек — чтобы не было пустот по высоте
+    '<div class="h-row" style="justify-content:flex-end;gap:10px">'+
+    '<button class="icbtn" id="finDebtBtn" title="Архив долгов команды"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+FIN_ICONS.debt+'</svg></button>'+
+    '<span class="fin-arch">АРХИВ · 3 прошлых феста + прайс бара</span></div>'+kpis+cmpIns+cards+price+'</div>';
+  var db=document.getElementById('finDebtBtn');if(db)db.onclick=function(){openModal(debtHtml);};
+  // раскрытие синхронно у всех карточек — чтобы не было пустот по высоте
   el.querySelectorAll('.acc-h').forEach(function(h){h.onclick=function(){
     var open=!h.parentElement.classList.contains('open');
     el.querySelectorAll('.acc').forEach(function(a){a.classList.toggle('open',open);});
