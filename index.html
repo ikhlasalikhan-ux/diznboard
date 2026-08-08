@@ -3487,7 +3487,6 @@ function renderCalendar(el){
       '<div class="cal-top"><div class="cal-nav"><button id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>'+
         '<button id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button></div>'+
         '<div class="cal-title">'+MONTHS[m]+' '+y+'</div>'+
-        '<button class="btn ghost sm" id="calToday">Сегодня</button>'+
         '<div class="cal-top-right" style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
           '<div class="cal-legend" style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--mut)">'+
             '<span style="display:inline-flex;align-items:center;gap:6px"><span class="cev-dot" style="width:9px;height:9px;border-radius:50%;background:var(--v)"></span>срок задачи</span>'+
@@ -3503,7 +3502,6 @@ function renderCalendar(el){
   // всё, что меняет месяц/выбор недели — мягкое обновление только таблицы
   document.getElementById('calPrev').onclick=function(){CAL.m--;if(CAL.m<0){CAL.m=11;CAL.y--;}updateCalTable(el);};
   document.getElementById('calNext').onclick=function(){CAL.m++;if(CAL.m>11){CAL.m=0;CAL.y++;}updateCalTable(el);};
-  document.getElementById('calToday').onclick=function(){var n=new Date();CAL={y:n.getFullYear(),m:n.getMonth()};updateCalTable(el);};
   el.querySelectorAll('.wk[data-jump]').forEach(function(w){w.onclick=function(){SELW=w.dataset.wid;var p=w.dataset.jump.split('-');CAL={y:+p[0],m:+p[1]-1};updateCalTable(el);};});
   var dxh=document.getElementById('dayxHero');if(dxh)dxh.onclick=function(){var fw=(STATE.weeks||[]).filter(function(w){return DAYX>=w.start&&DAYX<=w.end;})[0];if(fw)SELW=fw.id;CAL={y:2026,m:7};updateCalTable(el);};
   bindCalCells(el);
