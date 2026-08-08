@@ -1319,12 +1319,7 @@ body.party .party-tag{opacity:1;transform:translateX(-50%) translateY(0)}
         <div class="av">A</div>
         <div style="min-width:0"><b>admin</b><br><small>CEO ROOM</small></div>
         <div class="umenu">
-          <div class="umi" id="pinBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v6l-2 4v2h10v-2l-2-4V3"/><path d="M12 17v4"/></svg>Закрепить меню</div>
-          <div class="umi" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M4 21h16"/></svg>Скачать копию (.json)</div>
-          <div class="umi" id="importBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4M4 21h16"/></svg>Загрузить копию (.json)</div>
-          <div class="umi danger" id="resetBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Очистить всё</div>
           <div class="umi danger" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Выйти</div>
-          <input type="file" id="importFile" accept=".json,application/json" style="display:none">
         </div>
       </div>
     </div>
@@ -2007,7 +2002,6 @@ burger.addEventListener('click',function(){
 document.getElementById('navScrim').addEventListener('click',function(){mobNav(false);});
 document.getElementById('nav').addEventListener('click',function(){if(isMobile())mobNav(false);});
 window.addEventListener('resize',function(){if(!isMobile())mobNav(false);});
-document.getElementById('pinBtn').addEventListener('click',function(){applyPin(!document.body.classList.contains('nav-pinned'));});
 sbPinBtn.addEventListener('click',function(e){e.preventDefault();applyPin(!document.body.classList.contains('nav-pinned'));});
 (function(){var s;try{s=localStorage.getItem('pb_pin');}catch(e){}applyPin(s===null?true:s==='1');})();
 /* theme */
@@ -2028,23 +2022,6 @@ function closeAllPickers(){
 }
 document.getElementById('userWrap').addEventListener('click',function(e){e.stopPropagation();var willOpen=!this.classList.contains('open');closeAllPickers();if(willOpen)this.classList.add('open');});
 document.addEventListener('click',closeAllPickers);
-/* резервная копия / перенос данных */
-document.getElementById('exportBtn').addEventListener('click',function(){
-  var blob=new Blob([JSON.stringify(_store(),null,2)],{type:'application/json'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='dizn-board-'+todayStr()+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);toast('Копия скачана');});
-document.getElementById('importBtn').addEventListener('click',function(){document.getElementById('importFile').click();});
-document.getElementById('importFile').addEventListener('change',function(){
-  var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();
-  r.onload=function(){try{var d=JSON.parse(r.result);
-    if(!d||typeof d!=='object'||!Array.isArray(d.projects))throw new Error('не тот формат');
-    if(!confirm('Заменить текущие данные содержимым файла?'))return;
-    _save(d);SEL=null;reload().then(function(){setView(CUR,false);toast('Данные загружены');});
-  }catch(e){alert('Не удалось прочитать файл: '+e.message);}};
-  r.readAsText(f);this.value='';});
-document.getElementById('resetBtn').addEventListener('click',function(){
-  if(!confirm('Удалить ВСЕ проекты, задачи и события без возможности отмены?'))return;
-  _save({projects:[],tasks:[],events:[],people:[]});SEL=null;reload().then(function(){setView(CUR,false);toast('Данные очищены');});});
 document.getElementById('logoutBtn').addEventListener('click',function(){
   try{localStorage.removeItem('pb_auth');localStorage.removeItem('pb_role');}catch(e){}
   location.reload();});
